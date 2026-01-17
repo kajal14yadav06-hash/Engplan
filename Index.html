@@ -1,0 +1,741 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>EngPlan — Productivity for Engineering Students</title>
+  <style>
+    :root{
+      --bg:#0f1216;
+      --panel:#151a21;
+      --panel-2:#1b212a;
+      --text:#e9edf3;
+      --muted:#a9b3c1;
+      --accent:#4da3ff;
+      --accent-2:#7bd389;
+      --danger:#ff6b6b;
+      --warning:#ffb84d;
+      --border:#263041;
+      --shadow:0 8px 24px rgba(0,0,0,0.25);
+      --radius:12px;
+    }
+    *{box-sizing:border-box}
+    html,body{height:100%}
+    body{
+      margin:0;
+      font-family:Inter,system-ui,-apple-system,Segoe UI,Roboto,Ubuntu,"Helvetica Neue",Arial;
+      background:linear-gradient(180deg,#0d1115 0%, #0f1216 100%);
+      color:var(--text);
+    }
+    /* Layout */
+    .app{
+      display:grid;
+      grid-template-columns: 280px 1fr;
+      min-height:100vh;
+    }
+    aside{
+      background:var(--panel);
+      border-right:1px solid var(--border);
+      padding:20px;
+      position:sticky;
+      top:0;
+      height:100vh;
+    }
+    main{
+      padding:24px;
+    }
+    /* Sidebar */
+    .brand{
+      display:flex;
+      align-items:center;
+      gap:12px;
+      margin-bottom:24px;
+    }
+    .brand .logo{
+      width:36px;height:36px;border-radius:10px;
+      background:linear-gradient(135deg,var(--accent),#7b9cff);
+      box-shadow:var(--shadow);
+    }
+    .brand h1{
+      font-size:18px;margin:0;font-weight:700;letter-spacing:0.3px;
+    }
+    .nav{
+      display:flex;flex-direction:column;gap:8px;margin-top:8px;
+    }
+    .nav button{
+      all:unset;display:flex;align-items:center;gap:10px;
+      padding:10px 12px;border-radius:10px;color:var(--text);
+      cursor:pointer;border:1px solid transparent;
+    }
+    .nav button:hover{background:var(--panel-2);border-color:var(--border)}
+    .nav button.active{background:var(--panel-2);border-color:var(--accent);color:var(--text)}
+    .nav .badge{
+      margin-left:auto;background:var(--panel-2);color:var(--muted);
+      padding:2px 8px;border-radius:999px;font-size:12px;border:1px solid var(--border);
+    }
+    .sidebar-section{margin-top:24px}
+    .sidebar-section h3{font-size:12px;color:var(--muted);margin:0 0 8px 4px;letter-spacing:0.6px}
+    .subject{
+      display:flex;align-items:center;gap:10px;padding:8px 10px;border-radius:10px;
+      border:1px solid var(--border);background:var(--panel-2);margin-bottom:8px;
+    }
+    .subject .dot{width:8px;height:8px;border-radius:50%}
+    .subject .name{font-size:13px}
+    .subject .load{margin-left:auto;font-size:12px;color:var(--muted)}
+    .footer{
+      position:absolute;bottom:16px;left:20px;right:20px;color:var(--muted);font-size:12px;
+      border-top:1px dashed var(--border);padding-top:12px;
+    }
+    /* Header */
+    .header{
+      display:flex;align-items:center;gap:12px;margin-bottom:16px;
+    }
+    .header .title{font-size:22px;font-weight:700}
+    .header .spacer{flex:1}
+    .search{
+      display:flex;align-items:center;gap:8px;background:var(--panel);
+      border:1px solid var(--border);border-radius:12px;padding:8px 12px;min-width:260px;
+    }
+    .search input{
+      all:unset;color:var(--text);width:100%;font-size:14px;
+    }
+    .btn{
+      all:unset;display:inline-flex;align-items:center;gap:8px;
+      background:var(--accent);color:#0b0f14;padding:10px 14px;border-radius:10px;
+      font-weight:600;cursor:pointer;box-shadow:var(--shadow);
+    }
+    .btn.secondary{background:var(--panel);color:var(--text);border:1px solid var(--border);box-shadow:none}
+    .btn.warn{background:var(--warning)}
+    .btn.danger{background:var(--danger);color:#fff}
+    /* Dashboard cards */
+    .grid{
+      display:grid;grid-template-columns: repeat(12, 1fr);gap:16px;margin-bottom:16px;
+    }
+    .card{
+      background:var(--panel);border:1px solid var(--border);border-radius:var(--radius);
+      padding:16px;box-shadow:var(--shadow);
+    }
+    .card h4{margin:0 0 8px 0;font-size:14px;color:var(--muted);letter-spacing:0.4px}
+    .metric{
+      display:flex;align-items:baseline;gap:8px;
+    }
+    .metric .value{font-size:28px;font-weight:800}
+    .metric .sub{font-size:12px;color:var(--muted)}
+    .progress{
+      height:10px;background:var(--panel-2);border:1px solid var(--border);
+      border-radius:999px;overflow:hidden;margin-top:8px;
+    }
+    .progress .bar{height:100%;background:linear-gradient(90deg,var(--accent),#7bd389)}
+    /* Tabs */
+    .tabs{display:flex;gap:8px;margin:8px 0 12px}
+    .tab{
+      all:unset;cursor:pointer;padding:8px 12px;border-radius:999px;
+      border:1px solid var(--border);color:var(--muted);background:var(--panel-2);
+    }
+    .tab.active{color:var(--text);border-color:var(--accent);background:rgba(77,163,255,0.12)}
+    /* Task list */
+    .list{display:flex;flex-direction:column;gap:10px}
+    .task{
+      display:grid;grid-template-columns: 28px 1fr auto;gap:12px;align-items:center;
+      background:var(--panel);border:1px solid var(--border);border-radius:12px;padding:12px;
+    }
+    .task .type{
+      width:28px;height:28px;border-radius:8px;display:flex;align-items:center;justify-content:center;
+      font-size:12px;font-weight:700;color:#0b0f14;
+    }
+    .task .content{display:flex;flex-direction:column;gap:4px}
+    .task .title{font-weight:700}
+    .task .meta{font-size:12px;color:var(--muted)}
+    .task .actions{display:flex;gap:8px}
+    .chip{
+      display:inline-flex;align-items:center;gap:6px;padding:4px 8px;border-radius:999px;
+      border:1px solid var(--border);background:var(--panel-2);font-size:12px;color:var(--muted);
+    }
+    .due-soon{border-color:var(--warning);color:#ffcf7d;background:rgba(255,184,77,0.12)}
+    .overdue{border-color:var(--danger);color:#ff9b9b;background:rgba(255,107,107,0.12)}
+    /* Schedule */
+    .schedule{
+      display:grid;grid-template-columns: 80px repeat(5, 1fr);gap:8px;
+    }
+    .slot{
+      background:var(--panel);border:1px dashed var(--border);border-radius:10px;padding:10px;min-height:64px;
+    }
+    .slot .event{
+      background:var(--panel-2);border:1px solid var(--border);border-radius:8px;padding:6px;margin-bottom:6px;
+      font-size:12px
+    }
+    .day{font-size:12px;color:var(--muted);text-align:center;margin-bottom:6px}
+    /* Heatmap */
+    .heatmap{display:grid;grid-template-columns: repeat(7, 1fr);gap:6px}
+    .cell{
+      height:22px;border-radius:6px;background:var(--panel-2);border:1px solid var(--border)
+    }
+    .cell.l1{background:#203248}
+    .cell.l2{background:#27415e}
+    .cell.l3{background:#2e5175}
+    .cell.l4{background:#35608b}
+    .cell.l5{background:#3c70a2}
+    /* Modal */
+    .modal-backdrop{
+      position:fixed;inset:0;background:rgba(0,0,0,0.5);display:none;align-items:center;justify-content:center;
+      z-index:1000;
+    }
+    .modal{
+      width:min(560px,92vw);background:var(--panel);border:1px solid var(--border);border-radius:16px;
+      box-shadow:var(--shadow);padding:16px;
+    }
+    .modal h3{margin:0 0 12px 0}
+    .form-row{display:grid;grid-template-columns: 1fr 1fr;gap:12px;margin-bottom:10px}
+    .form-row.single{grid-template-columns: 1fr}
+    .input{
+      display:flex;flex-direction:column;gap:6px
+    }
+    .input label{font-size:12px;color:var(--muted)}
+    .input input,.input select,.input textarea{
+      all:unset;background:var(--panel-2);border:1px solid var(--border);border-radius:10px;
+      padding:10px;color:var(--text);font-size:14px
+    }
+    .modal-actions{display:flex;gap:8px;justify-content:flex-end;margin-top:8px}
+    /* Responsive */
+    @media (max-width: 1024px){
+      .app{grid-template-columns: 1fr}
+      aside{position:relative;height:auto}
+      .grid{grid-template-columns: repeat(12, 1fr)}
+    }
+    @media (max-width: 768px){
+      .grid{grid-template-columns: 1fr}
+      .schedule{grid-template-columns: 60px repeat(5, 1fr)}
+      .header{flex-wrap:wrap}
+      .search{min-width:unset;flex:1}
+    }
+  </style>
+</head>
+<body>
+  <div class="app">
+    <!-- Sidebar -->
+    <aside>
+      <div class="brand">
+        <div class="logo"></div>
+        <h1>EngPlan</h1>
+      </div>
+      <div class="nav">
+        <button class="active" data-view="dashboard">📊 Dashboard <span class="badge" id="badge-total">0</span></button>
+        <button data-view="tasks">✅ Tasks <span class="badge" id="badge-open">0</span></button>
+        <button data-view="schedule">🗓️ Schedule</button>
+        <button data-view="subjects">📚 Subjects</button>
+      </div>
+
+      <div class="sidebar-section">
+        <h3>Quick filters</h3>
+        <div class="subject">
+          <div class="dot" style="background:#4da3ff"></div>
+          <div class="name">Assignments</div>
+          <div class="load" id="count-assignments">0</div>
+        </div>
+        <div class="subject">
+          <div class="dot" style="background:#7bd389"></div>
+          <div class="name">Labs</div>
+          <div class="load" id="count-labs">0</div>
+        </div>
+        <div class="subject">
+          <div class="dot" style="background:#ffb84d"></div>
+          <div class="name">Projects</div>
+          <div class="load" id="count-projects">0</div>
+        </div>
+        <div class="subject">
+          <div class="dot" style="background:#ff6b6b"></div>
+          <div class="name">Exams</div>
+          <div class="load" id="count-exams">0</div>
+        </div>
+      </div>
+
+      <div class="sidebar-section">
+        <h3>Subjects</h3>
+        <div id="subject-list"></div>
+      </div>
+
+      <div class="footer">
+        Built with mock data • Frontend-only • Responsive UI
+      </div>
+    </aside>
+
+    <!-- Main -->
+    <main>
+      <div class="header">
+        <div class="title">Dashboard</div>
+        <div class="spacer"></div>
+        <div class="search">
+          🔎
+          <input id="search" placeholder="Search tasks, subjects, deadlines..." />
+        </div>
+        <button class="btn" id="btn-add">＋ Add task</button>
+      </div>
+
+      <!-- Dashboard -->
+      <section id="view-dashboard">
+        <div class="grid">
+          <div class="card" style="grid-column: span 3">
+            <h4>Open tasks</h4>
+            <div class="metric">
+              <div class="value" id="metric-open">0</div>
+              <div class="sub">across all categories</div>
+            </div>
+            <div class="progress"><div class="bar" id="bar-open" style="width:0%"></div></div>
+          </div>
+          <div class="card" style="grid-column: span 3">
+            <h4>Due this week</h4>
+            <div class="metric">
+              <div class="value" id="metric-week">0</div>
+              <div class="sub">items approaching</div>
+            </div>
+            <div class="progress"><div class="bar" id="bar-week" style="width:0%"></div></div>
+          </div>
+          <div class="card" style="grid-column: span 3">
+            <h4>Completion rate</h4>
+            <div class="metric">
+              <div class="value" id="metric-complete">0%</div>
+              <div class="sub">overall progress</div>
+            </div>
+            <div class="progress"><div class="bar" id="bar-complete" style="width:0%"></div></div>
+          </div>
+          <div class="card" style="grid-column: span 3">
+            <h4>Workload heatmap</h4>
+            <div class="heatmap" id="heatmap"></div>
+          </div>
+        </div>
+
+        <div class="card">
+          <h4>Upcoming deadlines</h4>
+          <div class="list" id="list-upcoming"></div>
+        </div>
+      </section>
+
+      <!-- Tasks -->
+      <section id="view-tasks" style="display:none">
+        <div class="card">
+          <h4>Tasks</h4>
+          <div class="tabs" id="task-tabs">
+            <button class="tab active" data-type="all">All</button>
+            <button class="tab" data-type="assignment">Assignments</button>
+            <button class="tab" data-type="lab">Labs</button>
+            <button class="tab" data-type="project">Projects</button>
+            <button class="tab" data-type="exam">Exams</button>
+          </div>
+          <div class="list" id="task-list"></div>
+        </div>
+      </section>
+
+      <!-- Schedule -->
+      <section id="view-schedule" style="display:none">
+        <div class="grid">
+          <div class="card" style="grid-column: span 12">
+            <h4>Weekly schedule</h4>
+            <div class="schedule" id="schedule">
+              <div>
+                <div class="day">Time</div>
+                <div class="slot">08:00</div>
+                <div class="slot">10:00</div>
+                <div class="slot">12:00</div>
+                <div class="slot">14:00</div>
+                <div class="slot">16:00</div>
+              </div>
+              <!-- Days will be injected -->
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- Subjects -->
+      <section id="view-subjects" style="display:none">
+        <div class="grid">
+          <div class="card" style="grid-column: span 12">
+            <h4>Subjects overview</h4>
+            <div class="list" id="subject-overview"></div>
+          </div>
+        </div>
+      </section>
+    </main>
+  </div>
+
+  <!-- Modal -->
+  <div class="modal-backdrop" id="modal-backdrop">
+    <div class="modal">
+      <h3>Add task</h3>
+      <div class="form-row">
+        <div class="input">
+          <label>Title</label>
+          <input id="form-title" placeholder="e.g., Control Systems Assignment 2" />
+        </div>
+        <div class="input">
+          <label>Type</label>
+          <select id="form-type">
+            <option value="assignment">Assignment</option>
+            <option value="lab">Lab</option>
+            <option value="project">Project</option>
+            <option value="exam">Exam</option>
+          </select>
+        </div>
+      </div>
+      <div class="form-row">
+        <div class="input">
+          <label>Subject</label>
+          <select id="form-subject"></select>
+        </div>
+        <div class="input">
+          <label>Due date</label>
+          <input id="form-due" type="date" />
+        </div>
+      </div>
+      <div class="form-row single">
+        <div class="input">
+          <label>Notes</label>
+          <textarea id="form-notes" rows="3" placeholder="Requirements, rubric, lab setup, etc."></textarea>
+        </div>
+      </div>
+      <div class="modal-actions">
+        <button class="btn secondary" id="btn-cancel">Cancel</button>
+        <button class="btn" id="btn-save">Save</button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // ---------- Mock Data ----------
+    const subjects = [
+      { id:'sub1', name:'Control Systems', color:'#4da3ff' },
+      { id:'sub2', name:'Data Structures', color:'#7bd389' },
+      { id:'sub3', name:'Digital Electronics', color:'#ffb84d' },
+      { id:'sub4', name:'Thermodynamics', color:'#ff6b6b' },
+      { id:'sub5', name:'Signals & Systems', color:'#b48cf0' },
+    ];
+
+    const mockTasks = [
+      { id:'t1', title:'Assignment 1: Stability Analysis', type:'assignment', subject:'sub1', due:daysFromNow(2), notes:'Routh-Hurwitz criteria', done:false },
+      { id:'t2', title:'Lab: Linked List Implementation', type:'lab', subject:'sub2', due:daysFromNow(1), notes:'Singly & doubly linked lists', done:false },
+      { id:'t3', title:'Midterm Exam', type:'exam', subject:'sub3', due:daysFromNow(7), notes:'Combinational circuits', done:false },
+      { id:'t4', title:'Project Proposal: Heat Exchanger', type:'project', subject:'sub4', due:daysFromNow(10), notes:'2-page proposal', done:false },
+      { id:'t5', title:'Assignment 2: Sampling Theorem', type:'assignment', subject:'sub5', due:daysFromNow(5), notes:'Nyquist rate', done:true },
+      { id:'t6', title:'Lab: ADC Calibration', type:'lab', subject:'sub3', due:daysFromNow(-1), notes:'Use 10-bit ADC', done:false },
+    ];
+
+    const scheduleMock = {
+      Monday: [
+        { time:'08:00', label:'Control Systems Lecture', subject:'sub1' },
+        { time:'10:00', label:'Data Structures Lab', subject:'sub2' },
+      ],
+      Tuesday: [
+        { time:'12:00', label:'Digital Electronics Tutorial', subject:'sub3' },
+      ],
+      Wednesday: [
+        { time:'14:00', label:'Thermodynamics Lecture', subject:'sub4' },
+      ],
+      Thursday: [
+        { time:'16:00', label:'Signals & Systems Lecture', subject:'sub5' },
+      ],
+      Friday: [
+        { time:'10:00', label:'Project Meeting', subject:'sub4' },
+      ],
+    };
+
+    // ---------- State ----------
+    let tasks = loadState() || mockTasks.slice();
+    let activeView = 'dashboard';
+    let activeType = 'all';
+    let searchQuery = '';
+
+    // ---------- Utilities ----------
+    function daysFromNow(d){
+      const dt = new Date(); dt.setDate(dt.getDate()+d);
+      return dt.toISOString().slice(0,10);
+    }
+    function fmtDate(d){
+      const dt = new Date(d+'T00:00:00'); return dt.toLocaleDateString(undefined,{month:'short',day:'numeric'});
+    }
+    function getSubject(id){ return subjects.find(s=>s.id===id) }
+    function saveState(){ localStorage.setItem('engplan_tasks', JSON.stringify(tasks)) }
+    function loadState(){ try{ return JSON.parse(localStorage.getItem('engplan_tasks')) }catch(e){ return null } }
+    function daysUntil(d){
+      const today = new Date(); today.setHours(0,0,0,0);
+      const due = new Date(d+'T00:00:00');
+      return Math.round((due - today)/(1000*60*60*24));
+    }
+    function typeColor(type){
+      return {
+        assignment:'#4da3ff',
+        lab:'#7bd389',
+        project:'#ffb84d',
+        exam:'#ff6b6b'
+      }[type] || '#999';
+    }
+
+    // ---------- Rendering ----------
+    const views = {
+      dashboard: document.getElementById('view-dashboard'),
+      tasks: document.getElementById('view-tasks'),
+      schedule: document.getElementById('view-schedule'),
+      subjects: document.getElementById('view-subjects'),
+    };
+
+    function render(){
+      // badges
+      document.getElementById('badge-total').textContent = tasks.length;
+      document.getElementById('badge-open').textContent = tasks.filter(t=>!t.done).length;
+
+      // quick filter counts
+      countByType('assignment','count-assignments');
+      countByType('lab','count-labs');
+      countByType('project','count-projects');
+      countByType('exam','count-exams');
+
+      // subjects list
+      const sl = document.getElementById('subject-list');
+      sl.innerHTML = '';
+      subjects.forEach(s=>{
+        const div = document.createElement('div');
+        div.className='subject';
+        div.innerHTML = `
+          <div class="dot" style="background:${s.color}"></div>
+          <div class="name">${s.name}</div>
+          <div class="load">${tasks.filter(t=>t.subject===s.id && !t.done).length} open</div>
+        `;
+        sl.appendChild(div);
+      });
+
+      // dashboard metrics
+      const open = tasks.filter(t=>!t.done).length;
+      const week = tasks.filter(t=>daysUntil(t.due) >= 0 && daysUntil(t.due) <= 7 && !t.done).length;
+      const completeRate = tasks.length ? Math.round(100 * tasks.filter(t=>t.done).length / tasks.length) : 0;
+      document.getElementById('metric-open').textContent = open;
+      document.getElementById('metric-week').textContent = week;
+      document.getElementById('metric-complete').textContent = completeRate + '%';
+      document.getElementById('bar-open').style.width = `${Math.min(100, open*10)}%`;
+      document.getElementById('bar-week').style.width = `${Math.min(100, week*20)}%`;
+      document.getElementById('bar-complete').style.width = `${completeRate}%`;
+
+      // heatmap (simple distribution across 7 days)
+      const hm = document.getElementById('heatmap');
+      hm.innerHTML = '';
+      const buckets = Array(7).fill(0);
+      tasks.forEach(t=>{
+        const d = new Date(t.due+'T00:00:00').getDay(); // 0-6
+        buckets[d] += 1;
+      });
+      const max = Math.max(...buckets,1);
+      buckets.forEach(b=>{
+        const level = b===0 ? '' : `l${Math.min(5, Math.ceil((b/max)*5))}`;
+        const cell = document.createElement('div');
+        cell.className = `cell ${level}`;
+        hm.appendChild(cell);
+      });
+
+      // upcoming list
+      const upcoming = tasks
+        .filter(t=>!t.done)
+        .sort((a,b)=>new Date(a.due)-new Date(b.due))
+        .slice(0,5);
+      const ul = document.getElementById('list-upcoming');
+      ul.innerHTML = '';
+      upcoming.forEach(t=>ul.appendChild(taskItem(t)));
+
+      // tasks view
+      renderTasks();
+
+      // schedule
+      renderSchedule();
+
+      // subjects overview
+      renderSubjectsOverview();
+    }
+
+    function countByType(type, elId){
+      const el = document.getElementById(elId);
+      el.textContent = tasks.filter(t=>t.type===type && !t.done).length;
+    }
+
+    function taskItem(t){
+      const sub = getSubject(t.subject);
+      const dLeft = daysUntil(t.due);
+      const chipClass = dLeft < 0 ? 'overdue' : (dLeft <= 2 ? 'due-soon' : '');
+      const div = document.createElement('div');
+      div.className='task';
+      div.innerHTML = `
+        <div class="type" style="background:${typeColor(t.type)}">${t.type[0].toUpperCase()}</div>
+        <div class="content">
+          <div class="title">${t.title}</div>
+          <div class="meta">${sub?.name || 'Unknown'} • Due ${fmtDate(t.due)} • ${t.type}</div>
+          <div class="chip ${chipClass}">${dLeft<0 ? 'Overdue' : dLeft===0 ? 'Due today' : dLeft+' days left'}</div>
+        </div>
+        <div class="actions">
+          <button class="btn secondary" data-action="toggle">${t.done ? 'Mark open' : 'Mark done'}</button>
+          <button class="btn warn" data-action="snooze">Snooze</button>
+          <button class="btn danger" data-action="delete">Delete</button>
+        </div>
+      `;
+      // actions
+      div.querySelector('[data-action="toggle"]').onclick = ()=>{
+        t.done = !t.done; saveState(); render();
+      };
+      div.querySelector('[data-action="delete"]').onclick = ()=>{
+        tasks = tasks.filter(x=>x.id!==t.id); saveState(); render();
+      };
+      div.querySelector('[data-action="snooze"]').onclick = ()=>{
+        const newDue = new Date(t.due+'T00:00:00'); newDue.setDate(newDue.getDate()+2);
+        t.due = newDue.toISOString().slice(0,10); saveState(); render();
+      };
+      return div;
+    }
+
+    function renderTasks(){
+      const list = document.getElementById('task-list');
+      list.innerHTML = '';
+      const filtered = tasks
+        .filter(t=>activeType==='all' ? true : t.type===activeType)
+        .filter(t=>searchQuery ? (t.title.toLowerCase().includes(searchQuery) || (getSubject(t.subject)?.name.toLowerCase().includes(searchQuery))) : true)
+        .sort((a,b)=>new Date(a.due)-new Date(b.due));
+      if(filtered.length===0){
+        const empty = document.createElement('div');
+        empty.className='chip';
+        empty.textContent = 'No tasks match the current filters.';
+        list.appendChild(empty);
+      }else{
+        filtered.forEach(t=>list.appendChild(taskItem(t)));
+      }
+    }
+
+    function renderSchedule(){
+      const container = document.getElementById('schedule');
+      // remove previous day columns
+      [...container.querySelectorAll('.day-col')].forEach(el=>el.remove());
+      const days = ['Monday','Tuesday','Wednesday','Thursday','Friday'];
+      days.forEach(day=>{
+        const col = document.createElement('div');
+        col.className='day-col';
+        col.innerHTML = `<div class="day">${day}</div>`;
+        ['08:00','10:00','12:00','14:00','16:00'].forEach(time=>{
+          const slot = document.createElement('div');
+          slot.className='slot';
+          const events = (scheduleMock[day]||[]).filter(e=>e.time===time);
+          events.forEach(e=>{
+            const sub = getSubject(e.subject);
+            const ev = document.createElement('div');
+            ev.className='event';
+            ev.style.borderColor = sub?.color || '#999';
+            ev.textContent = e.label;
+            slot.appendChild(ev);
+          });
+          col.appendChild(slot);
+        });
+        container.appendChild(col);
+      });
+    }
+
+    function renderSubjectsOverview(){
+      const container = document.getElementById('subject-overview');
+      container.innerHTML = '';
+      subjects.forEach(s=>{
+        const total = tasks.filter(t=>t.subject===s.id).length;
+        const open = tasks.filter(t=>t.subject===s.id && !t.done).length;
+        const completeRate = total ? Math.round(100*(total-open)/total) : 0;
+        const item = document.createElement('div');
+        item.className='task';
+        item.innerHTML = `
+          <div class="type" style="background:${s.color}">S</div>
+          <div class="content">
+            <div class="title">${s.name}</div>
+            <div class="meta">${open} open • ${total} total</div>
+            <div class="progress"><div class="bar" style="width:${completeRate}%"></div></div>
+          </div>
+          <div class="actions">
+            <button class="btn secondary" data-action="filter">Filter tasks</button>
+          </div>
+        `;
+        item.querySelector('[data-action="filter"]').onclick = ()=>{
+          activeType = 'all';
+          document.querySelectorAll('#task-tabs .tab').forEach(t=>t.classList.remove('active'));
+          document.querySelector('#task-tabs .tab[data-type="all"]').classList.add('active');
+          // set search to subject name
+          document.getElementById('search').value = s.name;
+          searchQuery = s.name.toLowerCase();
+          switchView('tasks');
+        };
+        container.appendChild(item);
+      });
+    }
+
+    // ---------- Interactions ----------
+    // view switching
+    document.querySelectorAll('.nav button').forEach(btn=>{
+      btn.onclick = ()=>{
+        document.querySelectorAll('.nav button').forEach(b=>b.classList.remove('active'));
+        btn.classList.add('active');
+        switchView(btn.dataset.view);
+      };
+    });
+
+    function switchView(view){
+      activeView = view;
+      document.querySelector('.header .title').textContent = {
+        dashboard:'Dashboard',
+        tasks:'Tasks',
+        schedule:'Schedule',
+        subjects:'Subjects'
+      }[view] || 'Dashboard';
+      Object.entries(views).forEach(([k,el])=>{
+        el.style.display = (k===view) ? '' : 'none';
+      });
+    }
+
+    // tabs
+    document.querySelectorAll('#task-tabs .tab').forEach(tab=>{
+      tab.onclick = ()=>{
+        document.querySelectorAll('#task-tabs .tab').forEach(t=>t.classList.remove('active'));
+        tab.classList.add('active');
+        activeType = tab.dataset.type;
+        renderTasks();
+      };
+    });
+
+    // search
+    document.getElementById('search').addEventListener('input', (e)=>{
+      searchQuery = e.target.value.trim().toLowerCase();
+      renderTasks();
+      // also update upcoming list to reflect search context lightly (optional)
+    });
+
+    // modal
+    const backdrop = document.getElementById('modal-backdrop');
+    document.getElementById('btn-add').onclick = ()=>{
+      openModal();
+    };
+    document.getElementById('btn-cancel').onclick = closeModal;
+    backdrop.addEventListener('click', (e)=>{ if(e.target===backdrop) closeModal() });
+
+    function openModal(){
+      // populate subjects
+      const sel = document.getElementById('form-subject');
+      sel.innerHTML = subjects.map(s=>`<option value="${s.id}">${s.name}</option>`).join('');
+      document.getElementById('form-title').value='';
+      document.getElementById('form-type').value='assignment';
+      document.getElementById('form-due').value=daysFromNow(3);
+      document.getElementById('form-notes').value='';
+      backdrop.style.display='flex';
+    }
+    function closeModal(){ backdrop.style.display='none' }
+
+    document.getElementById('btn-save').onclick = ()=>{
+      const title = document.getElementById('form-title').value.trim();
+      const type = document.getElementById('form-type').value;
+      const subject = document.getElementById('form-subject').value;
+      const due = document.getElementById('form-due').value;
+      const notes = document.getElementById('form-notes').value.trim();
+      if(!title || !due){ alert('Please provide a title and due date.'); return; }
+      const id = 't'+Math.random().toString(36).slice(2,8);
+      tasks.push({ id, title, type, subject, due, notes, done:false });
+      saveState(); closeModal(); render(); switchView('tasks');
+    };
+
+    // initial render
+    render();
+  </script>
+</body>
+</html>
